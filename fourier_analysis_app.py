@@ -18,7 +18,7 @@ def fourier_coefficients(data, f0, harmonics, t):
     return a_n, b_n
 
 # Function to plot the original waveform, fundamental, 1st harmonic, and sum of first 10 harmonics
-def plot_2x2_waveforms(t, data, a_n, b_n, f0):
+def plot_2x2_waveforms(t, data, a_n, b_n, f0, n_harmonics):
     fig, axs = plt.subplots(2, 2, figsize=(8, 8))
 
     # (1) Original waveform
@@ -46,11 +46,11 @@ def plot_2x2_waveforms(t, data, a_n, b_n, f0):
 
     # (4) Sum of fundamental + next 9 harmonics
     sum_of_harmonics = np.zeros(len(t))
-    for i in range(1, 11):
+    for i in range(1, n_harmonics):
         sum_of_harmonics += a_n[i] * np.cos(2 * np.pi * i * f0 * t) + b_n[i] * np.sin(2 * np.pi * i * f0 * t)
-    axs[1, 1].plot(t, sum_of_harmonics, label="Fundamental + 9 Harmonics", color='red')
+    axs[1, 1].plot(t, sum_of_harmonics, label=f"Fundamental + {n_harmonics-1} Harmonics", color='red')
     axs[1, 1].plot(t, data, label="Original Waveform", color='blue', linestyle='dotted')
-    axs[1, 1].set_title("Fundamental + first 9 Harmonics")
+    axs[1, 1].set_title(f"Fundamental + first {n_harmonics-1} Harmonics")
     axs[1, 1].set_xlabel("Time [s]")
     axs[1, 1].set_ylabel("Amplitude")
     # axs[1, 1].legend()
@@ -94,4 +94,4 @@ if uploaded_file is not None:
     a_n, b_n = fourier_coefficients(data, f0, n_harmonics, t)
 
     # Plot the 2x2 waveforms
-    plot_2x2_waveforms(t, data, a_n, b_n, f0)
+    plot_2x2_waveforms(t, data, a_n, b_n, f0, n_harmonics)
