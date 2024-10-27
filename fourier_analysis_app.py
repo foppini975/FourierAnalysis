@@ -58,6 +58,28 @@ def plot_2x2_waveforms(t, data, a_n, b_n, f0, n_harmonics):
     plt.tight_layout()
     st.pyplot(fig)
 
+def plot_fourier_coefficients_3d(a_n, b_n):
+    # Generate n values (harmonic numbers)
+    n_values = np.arange(len(a_n))  # n values from 0 to the number of harmonics
+    
+    # Create a 3D figure
+    fig = plt.figure(figsize=(8, 6))
+    ax = fig.add_subplot(111, projection='3d')
+    
+    # Plot a_n and b_n in 3D space
+    ax.scatter(n_values, a_n, b_n, color='purple', label="Fourier Coefficients")
+
+    # Set labels
+    ax.set_xlabel("Harmonic Number (n)")
+    ax.set_ylabel("Cosine Coefficient (a_n)")
+    ax.set_zlabel("Sine Coefficient (b_n)")
+    ax.set_title("3D Plot of Fourier Coefficients ( a_n ) and ( b_n )")
+
+    # Display legend and plot
+    ax.legend()
+    plt.tight_layout()
+    st.pyplot(fig)
+
 # Streamlit App
 st.title("Fourier Analysis of a WAV File")
 
@@ -95,3 +117,6 @@ if uploaded_file is not None:
 
     # Plot the 2x2 waveforms
     plot_2x2_waveforms(t, data, a_n, b_n, f0, n_harmonics)
+    
+    # Plot Fourier coefficients
+    plot_fourier_coefficients_3d(a_n, b_n)
