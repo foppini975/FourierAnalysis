@@ -1,7 +1,9 @@
 import numpy as np
 import streamlit as st
 import matplotlib.pyplot as plt
+import plotly.graph_objects as go
 from scipy.io import wavfile
+import streamlit.components.v1 as components
 
 # Function to calculate Fourier coefficients for sine and cosine components
 def fourier_coefficients(data, f0, harmonics, t):
@@ -58,27 +60,54 @@ def plot_2x2_waveforms(t, data, a_n, b_n, f0, n_harmonics):
     plt.tight_layout()
     st.pyplot(fig)
 
+def plot_harmonic_magnitudes(a_n, b_n):
+    # Calculate the magnitude for each harmonic
+    magnitudes = np.sqrt(np.array(a_n)**2 + np.array(b_n)**2)
+    
+    # Generate x-axis values (harmonic numbers)
+    harmonics = np.arange(len(a_n))
+    
+    # Plot the magnitudes
+    figure = plt.figure(figsize=(8, 5))
+    markerline, stemlines, baseline = plt.stem(harmonics, magnitudes)
+    plt.setp(markerline, color='blue', marker='o', markersize=6)
+    plt.setp(stemlines, color='skyblue')
+    plt.setp(baseline, color='gray', linewidth=0.5)
+    
+    plt.xlabel("Harmonic Number (n)")
+    plt.ylabel("Magnitude \( \sqrt{a_n^2 + b_n^2} \)")
+    plt.title("Magnitude of Fourier Coefficients for Each Harmonic")
+    plt.tight_layout()
+    st.pyplot(figure)
+
+# Function to plot interactive 3D plot of Fourier coefficients
 def plot_fourier_coefficients_3d(a_n, b_n):
     # Generate n values (harmonic numbers)
     n_values = np.arange(len(a_n))  # n values from 0 to the number of harmonics
     
-    # Create a 3D figure
-    fig = plt.figure(figsize=(8, 6))
-    ax = fig.add_subplot(111, projection='3d')
+    # Create an interactive 3D scatter plot with Plotly
+    fig = go.Figure(data=[go.Scatter3d(
+        x=n_values, y=a_n, z=b_n,
+        mode='markers',
+        marker=dict(size=5, color=n_values, colorscale='Viridis', opacity=0.8),
+        text=[f"Harmonic {n}" for n in n_values]  # Hover text for each point
+    )])
+
+    # Update plot layout
+    fig.update_layout(
+        title="Interactive 3D Plot of Fourier Coefficients (a_n and b_n)",
+        scene=dict(
+            xaxis_title="Harmonic Number (n)",
+            yaxis_title="Cosine Coefficient (a_n)",
+            zaxis_title="Sine Coefficient (b_n)"
+        ),
+        template="plotly_white",
+        width=1200,  # chart width
+        height=800   # chart height
+    )
     
-    # Plot a_n and b_n in 3D space
-    ax.scatter(n_values, a_n, b_n, color='purple', label="Fourier Coefficients")
-
-    # Set labels
-    ax.set_xlabel("Harmonic Number (n)")
-    ax.set_ylabel("Cosine Coefficient (a_n)")
-    ax.set_zlabel("Sine Coefficient (b_n)")
-    ax.set_title("3D Plot of Fourier Coefficients ( a_n ) and ( b_n )")
-
-    # Display legend and plot
-    ax.legend()
-    plt.tight_layout()
-    st.pyplot(fig)
+    # Display the Plotly figure in Streamlit
+    st.plotly_chart(fig, use_container_width=True)
 
 # Streamlit App
 st.title("Fourier Analysis of a WAV File")
@@ -118,5 +147,9 @@ if uploaded_file is not None:
     # Plot the 2x2 waveforms
     plot_2x2_waveforms(t, data, a_n, b_n, f0, n_harmonics)
     
+    # Plot harmonic magnitude
+    plot_harmonic_magnitudes(a_n, b_n)
+
     # Plot Fourier coefficients
     plot_fourier_coefficients_3d(a_n, b_n)
+    
