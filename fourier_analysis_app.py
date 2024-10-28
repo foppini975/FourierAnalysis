@@ -152,6 +152,12 @@ if uploaded_file is not None:
     frequencies = np.fft.fftfreq(N, 1/sample_rate)
     f0 = abs(frequencies[np.argmax(np.abs(fft_values[:N // 2]))])
 
+    st.header("Waveform Fourier Analysis", divider="gray")
+    st.caption(f"The fundamental frequency (f0) automatically detected using the FFT (Fast Fourier Transform) is: {f0:.2f} Hz")
+    st.caption("It may happen that FFT returns an harmonic frequency, \
+        instead of the fundamental frequency. \
+        Therefore you can here divide the detected f0 by an integer factor \
+        to adjust its value and improve waveform Fourier analysis.")
     # Slider for adjusting the fundamental frequency
     fundamental_divider = st.slider("Fundamental Divider", 1, 10, 1)
     f0 = f0 / fundamental_divider
@@ -159,14 +165,22 @@ if uploaded_file is not None:
     # Slider for selecting the number of harmonics to plot
     n_harmonics = st.slider("Number of Harmonics", 1, 20, 10)
 
+    st.divider()
+
     # Calculate Fourier coefficients
     a_n, b_n = fourier_coefficients(data, f0, n_harmonics, t)
+
+    st.header("Calculated Fourier Coefficients", divider="gray")
 
     # Display the Fourier coefficients table
     display_fourier_coefficients_table(a_n, b_n, f0)
 
+    st.header("Waveform Charts", divider="gray")
+
     # Plot the 2x2 waveforms
     plot_2x2_waveforms(t, data, a_n, b_n, f0, n_harmonics)
+    
+    st.header("Fourier Coefficients Charts", divider="gray")
     
     # Plot harmonic magnitude
     plot_harmonic_magnitudes(a_n, b_n)
