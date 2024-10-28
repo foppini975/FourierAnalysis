@@ -26,14 +26,13 @@ def display_fourier_coefficients_table(a_n, b_n, f0):
     
     # Prepare data for the table
     data = {
-        "Index (i)": np.arange(1, n_harmonics + 1),
         "Harmonic Frequency (i * f0)": np.arange(1, n_harmonics + 1) * f0,
         "a_n (i)": a_n,
         "b_n (i)": b_n
     }
     
     # Create a DataFrame for better display in Streamlit
-    df = pd.DataFrame(data)
+    df = pd.DataFrame(data=data, index=np.arange(1, n_harmonics + 1))
     
     # Display the table in Streamlit
     st.table(df)
@@ -71,7 +70,7 @@ def plot_2x2_waveforms(t, data, a_n, b_n, f0, n_harmonics):
         sum_of_harmonics += a_n[i] * np.cos(2 * np.pi * i * f0 * t) + b_n[i] * np.sin(2 * np.pi * i * f0 * t)
     axs[1, 1].plot(t, sum_of_harmonics, label=f"Fundamental + {n_harmonics-1} Harmonics", color='red')
     axs[1, 1].plot(t, data, label="Original Waveform", color='blue', linestyle='dotted')
-    axs[1, 1].set_title(f"Fundamental + first {n_harmonics-1} Harmonics")
+    axs[1, 1].set_title(f"Fundamental + first {n_harmonics} Harmonics")
     axs[1, 1].set_xlabel("Time [s]")
     axs[1, 1].set_ylabel("Amplitude")
     # axs[1, 1].legend()
