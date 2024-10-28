@@ -1,3 +1,4 @@
+import pandas as pd
 import numpy as np
 import streamlit as st
 import matplotlib.pyplot as plt
@@ -18,6 +19,24 @@ def fourier_coefficients(data, f0, harmonics, t):
         b_n.append(2 * np.dot(data, sin_term) / N)
 
     return a_n, b_n
+
+def display_fourier_coefficients_table(a_n, b_n, f0):
+    # Calculate the number of harmonics
+    n_harmonics = len(a_n)
+    
+    # Prepare data for the table
+    data = {
+        "Index (i)": np.arange(1, n_harmonics + 1),
+        "Harmonic Frequency (i * f0)": np.arange(1, n_harmonics + 1) * f0,
+        "a_n (i)": a_n,
+        "b_n (i)": b_n
+    }
+    
+    # Create a DataFrame for better display in Streamlit
+    df = pd.DataFrame(data)
+    
+    # Display the table in Streamlit
+    st.table(df)
 
 # Function to plot the original waveform, fundamental, 1st harmonic, and sum of first 10 harmonics
 def plot_2x2_waveforms(t, data, a_n, b_n, f0, n_harmonics):
@@ -75,7 +94,7 @@ def plot_harmonic_magnitudes(a_n, b_n):
     plt.setp(baseline, color='gray', linewidth=0.5)
     
     plt.xlabel("Harmonic Number (n)")
-    plt.ylabel("Magnitude \( \sqrt{a_n^2 + b_n^2} \)")
+    plt.ylabel("Magnitude ( sqrt{a_n^2 + b_n^2} )")
     plt.title("Magnitude of Fourier Coefficients for Each Harmonic")
     plt.tight_layout()
     st.pyplot(figure)
@@ -143,6 +162,9 @@ if uploaded_file is not None:
 
     # Calculate Fourier coefficients
     a_n, b_n = fourier_coefficients(data, f0, n_harmonics, t)
+
+    # Display the Fourier coefficients table
+    display_fourier_coefficients_table(a_n, b_n, f0)
 
     # Plot the 2x2 waveforms
     plot_2x2_waveforms(t, data, a_n, b_n, f0, n_harmonics)
