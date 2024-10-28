@@ -142,6 +142,11 @@ if uploaded_file is not None:
     if len(data.shape) > 1:
         data = data[:, 0]
     
+    normalize = st.checkbox("Normalize samples")
+
+    if normalize:
+        data = data / np.max(np.abs(data))
+    
     # Set up time vector
     N = len(data)
     T = N / sample_rate
