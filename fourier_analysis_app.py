@@ -5,6 +5,9 @@ import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 from scipy.io import wavfile
 import streamlit.components.v1 as components
+from xlsxwriter import Workbook
+from io import BytesIO
+import os
 
 # Function to calculate Fourier coefficients for sine and cosine components
 def fourier_coefficients(data, f0, harmonics, t):
@@ -127,6 +130,47 @@ def plot_fourier_coefficients_3d(a_n, b_n):
     # Display the Plotly figure in Streamlit
     st.plotly_chart(fig, use_container_width=True)
 
+def replace_extension(file_path, new_extension):
+    # Get the basename of the file (i.e., file name with extension)
+    base_name = os.path.basename(file_path)
+    # Split the base name into name and extension, then replace extension with ".xlsx"
+    name, _ = os.path.splitext(base_name)
+    # Return the new file name with ".xlsx" extension
+    return f"{name}.{new_extension}"
+
+# Function to create the Excel file with two sheets
+def create_excel_file(data, a_n, b_n, sample_rate):
+    # Normalize the data so the max value is 1
+    normalized_data = data / np.max(np.abs(data))
+    
+    # Create a DataFrame for audio samples with an index column
+    time = np.arange(len(data)) / sample_rate  # Time axis for samples
+    df_samples = pd.DataFrame({
+        "Index": np.arange(len(data)),  # Adding the index column
+        "Time (s)": time,
+        "Amplitude": data,
+        "Normalized Amplitude": normalized_data
+    })
+
+    # Create a DataFrame for Fourier coefficients
+    harmonic_numbers = np.arange(1, len(a_n) + 1)
+    frequencies = harmonic_numbers * f0  # Harmonic frequencies
+    df_coefficients = pd.DataFrame({
+        "Harmonic Number": harmonic_numbers,
+        "Frequency (Hz)": frequencies,
+        "a_n": a_n,
+        "b_n": b_n
+    })
+
+    # Write data to an Excel file in memory
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        df_samples.to_excel(writer, sheet_name="Samples", index=False)
+        df_coefficients.to_excel(writer, sheet_name="Fourier Coefficients", index=False)
+    
+    output.seek(0)  # Reset file pointer
+    return output
+
 # Streamlit App
 st.title("Fourier Analysis of a WAV File")
 
@@ -137,6 +181,9 @@ uploaded_file = st.file_uploader("Upload a WAV file", type="wav")
 if uploaded_file is not None:
     # Read the WAV file
     sample_rate, data = wavfile.read(uploaded_file)
+    
+    print(f"{uploaded_file=}")
+    print(f"{uploaded_file.name}")
     
     # Ensure mono by selecting first channel if stereo
     if len(data.shape) > 1:
@@ -157,6 +204,12 @@ if uploaded_file is not None:
     frequencies = np.fft.fftfreq(N, 1/sample_rate)
     f0 = abs(frequencies[np.argmax(np.abs(fft_values[:N // 2]))])
 
+    st.header("Waveform chracteristics", divider="gray")
+    st.caption(f"Sample rate: {sample_rate} samples/sec")
+    st.caption(f"Sampling time: {1000/sample_rate:.4f} msec")
+    st.caption(f"Number of samples: {N}")
+    st.caption(f"Clip duration: {T*1000:.0f} msec")
+
     st.header("Waveform Fourier Analysis", divider="gray")
     st.caption(f"The fundamental frequency (f0) automatically detected using the FFT (Fast Fourier Transform) is: {f0:.2f} Hz")
     st.caption("It may happen that FFT returns an harmonic frequency, \
@@ -166,6 +219,8 @@ if uploaded_file is not None:
     # Slider for adjusting the fundamental frequency
     fundamental_divider = st.slider("Fundamental Divider", 1, 10, 1)
     f0 = f0 / fundamental_divider
+    st.caption(f"Fundamental period: {1000/f0:.1f} msec corresponding to {sample_rate/f0:.0f} samples")
+    st.caption(f"Detected periods: {T*f0:.1f}")
 
     # Slider for selecting the number of harmonics to plot
     n_harmonics = st.slider("Number of Harmonics", 1, 20, 10)
@@ -179,6 +234,19 @@ if uploaded_file is not None:
 
     # Display the Fourier coefficients table
     display_fourier_coefficients_table(a_n, b_n, f0)
+
+    # Button to download Excel file
+    if st.button("Download Excel File with Data and Fourier Coefficients"):
+        # Create Excel file with samples and Fourier coefficients
+        excel_file = create_excel_file(data, a_n, b_n, sample_rate)
+        
+        # Streamlit download button
+        st.download_button(
+            label="Download Excel File",
+            data=excel_file,
+            file_name=replace_extension(uploaded_file.name, "xlsx"),
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
 
     st.header("Waveform Charts", divider="gray")
 
