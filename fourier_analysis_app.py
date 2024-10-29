@@ -140,16 +140,13 @@ def replace_extension(file_path, new_extension):
 
 # Function to create the Excel file with two sheets
 def create_excel_file(data, a_n, b_n, sample_rate):
-    # Normalize the data so the max value is 1
-    normalized_data = data / np.max(np.abs(data))
     
     # Create a DataFrame for audio samples with an index column
     time = np.arange(len(data)) / sample_rate  # Time axis for samples
     df_samples = pd.DataFrame({
         "Index": np.arange(len(data)),  # Adding the index column
         "Time (s)": time,
-        "Amplitude": data,
-        "Normalized Amplitude": normalized_data
+        "Amplitude": data
     })
 
     # Create a DataFrame for Fourier coefficients
@@ -180,19 +177,22 @@ uploaded_file = st.file_uploader("Upload a WAV file", type="wav")
 # If file is uploaded, process the file
 if uploaded_file is not None:
     # Read the WAV file
-    sample_rate, data = wavfile.read(uploaded_file)
+    sample_rate, data_in = wavfile.read(uploaded_file)
     
     print(f"{uploaded_file=}")
     print(f"{uploaded_file.name}")
     
     # Ensure mono by selecting first channel if stereo
-    if len(data.shape) > 1:
-        data = data[:, 0]
+    if len(data_in.shape) > 1:
+        data_in = data_in[:, 0]
     
     normalize = st.checkbox("Normalize samples")
+    data_norm = data_in / np.max(np.abs(data_in))
 
     if normalize:
-        data = data / np.max(np.abs(data))
+        data = data_norm
+    else:
+        data = data_in
     
     # Set up time vector
     N = len(data)
@@ -202,7 +202,7 @@ if uploaded_file is not None:
     # FFT to estimate fundamental frequency
     fft_values = np.fft.fft(data)
     frequencies = np.fft.fftfreq(N, 1/sample_rate)
-    f0 = abs(frequencies[np.argmax(np.abs(fft_values[:N // 2]))])
+    f0_fft = abs(frequencies[np.argmax(np.abs(fft_values[:N // 2]))])
 
     st.header("Waveform chracteristics", divider="gray")
     st.caption(f"Sample rate: {sample_rate} samples/sec")
@@ -211,14 +211,14 @@ if uploaded_file is not None:
     st.caption(f"Clip duration: {T*1000:.0f} msec")
 
     st.header("Waveform Fourier Analysis", divider="gray")
-    st.caption(f"The fundamental frequency (f0) automatically detected using the FFT (Fast Fourier Transform) is: {f0:.2f} Hz")
+    st.caption(f"The fundamental frequency (f0) automatically detected using the FFT (Fast Fourier Transform) is: {f0_fft:.2f} Hz")
     st.caption("It may happen that FFT returns an harmonic frequency, \
         instead of the fundamental frequency. \
         Therefore you can here divide the detected f0 by an integer factor \
         to adjust its value and improve waveform Fourier analysis.")
     # Slider for adjusting the fundamental frequency
     fundamental_divider = st.slider("Fundamental Divider", 1, 10, 1)
-    f0 = f0 / fundamental_divider
+    f0 = f0_fft / fundamental_divider
     st.caption(f"Fundamental period: {1000/f0:.1f} msec corresponding to {sample_rate/f0:.0f} samples")
     st.caption(f"Detected periods: {T*f0:.1f}")
 
