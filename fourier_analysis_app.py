@@ -139,14 +139,15 @@ def replace_extension(file_path, new_extension):
     return f"{name}.{new_extension}"
 
 # Function to create the Excel file with two sheets
-def create_excel_file(data, a_n, b_n, sample_rate):
+def create_excel_file(data_in, data_norm, a_n, b_n, sample_rate):
     
     # Create a DataFrame for audio samples with an index column
     time = np.arange(len(data)) / sample_rate  # Time axis for samples
     df_samples = pd.DataFrame({
         "Index": np.arange(len(data)),  # Adding the index column
         "Time (s)": time,
-        "Amplitude": data
+        "Amplitude": data_in,
+        "Normalized Amplitude": data_norm
     })
 
     # Create a DataFrame for Fourier coefficients
@@ -238,7 +239,7 @@ if uploaded_file is not None:
     # Button to download Excel file
     if st.button("Download Excel File with Data and Fourier Coefficients"):
         # Create Excel file with samples and Fourier coefficients
-        excel_file = create_excel_file(data, a_n, b_n, sample_rate)
+        excel_file = create_excel_file(data_in, data_norm, a_n, b_n, sample_rate)
         
         # Streamlit download button
         st.download_button(
