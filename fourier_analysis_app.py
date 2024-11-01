@@ -41,7 +41,7 @@ def display_fourier_coefficients_table(a_n, b_n, f0):
     st.table(df)
 
 # Function to plot the original waveform, fundamental, 1st harmonic, and sum of first 10 harmonics
-def plot_2x2_waveforms(t, data, a_n, b_n, f0, n_harmonics):
+def plot_2x2_waveforms(t, data, a_n, b_n, f0_fft, f0, n_harmonics):
     fig, axs = plt.subplots(2, 2, figsize=(8, 8))
 
     # (1) Original waveform
@@ -54,7 +54,7 @@ def plot_2x2_waveforms(t, data, a_n, b_n, f0, n_harmonics):
     # (2) Fundamental frequency
     fundamental = a_n[1] * np.cos(2 * np.pi * 1 * f0 * t) + b_n[1] * np.sin(2 * np.pi * 1 * f0 * t)
     axs[0, 1].plot(t, fundamental, label="Fundamental Frequency", color='orange')
-    axs[0, 1].set_title(f"Fundamental Frequency f0={f0:.0f}Hz (n=1)")
+    axs[0, 1].set_title(f"Fundamental Frequency f0={f0_fft:.0f}Hz (n=1)")
     axs[0, 1].set_xlabel("Time [s]")
     axs[0, 1].set_ylabel("Amplitude")
     # axs[0, 1].legend()
@@ -205,7 +205,7 @@ if uploaded_file is not None:
     frequencies = np.fft.fftfreq(N, 1/sample_rate)
     f0_fft = abs(frequencies[np.argmax(np.abs(fft_values[:N // 2]))])
 
-    st.header("Waveform chracteristics", divider="gray")
+    st.header("Waveform characteristics", divider="gray")
     st.caption(f"Sample rate: {sample_rate} samples/sec")
     st.caption(f"Sampling time: {1000/sample_rate:.4f} msec")
     st.caption(f"Number of samples: {N}")
@@ -252,7 +252,7 @@ if uploaded_file is not None:
     st.header("Waveform Charts", divider="gray")
 
     # Plot the 2x2 waveforms
-    plot_2x2_waveforms(t, data, a_n, b_n, f0, n_harmonics)
+    plot_2x2_waveforms(t, data, a_n, b_n, f0_fft, f0, n_harmonics)
     
     st.header("Fourier Coefficients Charts", divider="gray")
     
