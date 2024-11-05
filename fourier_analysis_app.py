@@ -41,7 +41,7 @@ def display_fourier_coefficients_table(a_n, b_n, f0):
     st.table(df)
 
 # Function to plot the original waveform, fundamental, 1st harmonic, and sum of first 10 harmonics
-def plot_2x2_waveforms(t, data, a_n, b_n, f0_fft, f0, n_harmonics):
+def plot_2x2_waveforms(t, data, a_n, b_n, f0, f0_title, n_harmonics):
     fig, axs = plt.subplots(2, 2, figsize=(8, 8))
 
     # (1) Original waveform
@@ -54,7 +54,7 @@ def plot_2x2_waveforms(t, data, a_n, b_n, f0_fft, f0, n_harmonics):
     # (2) Fundamental frequency
     fundamental = a_n[1] * np.cos(2 * np.pi * 1 * f0 * t) + b_n[1] * np.sin(2 * np.pi * 1 * f0 * t)
     axs[0, 1].plot(t, fundamental, label="Fundamental Frequency", color='orange')
-    axs[0, 1].set_title(f"Fundamental Frequency f0={f0_fft:.0f}Hz (n=1)")
+    axs[0, 1].set_title(f"Fundamental Frequency f0={f0_title:.0f}Hz (n=1)")
     axs[0, 1].set_xlabel("Time [s]")
     axs[0, 1].set_ylabel("Amplitude")
     # axs[0, 1].legend()
@@ -62,7 +62,7 @@ def plot_2x2_waveforms(t, data, a_n, b_n, f0_fft, f0, n_harmonics):
     # (3) 1st harmonic (n=2)
     first_harmonic = a_n[2] * np.cos(2 * np.pi * 2 * f0 * t) + b_n[2] * np.sin(2 * np.pi * 2 * f0 * t)
     axs[1, 0].plot(t, first_harmonic, label="1st Harmonic", color='green')
-    axs[1, 0].set_title(f"1st Harmonic f={2*f0:.0f}Hz (n=2)")
+    axs[1, 0].set_title(f"1st Harmonic f={f0_title:.0f}Hz (n=2)")
     axs[1, 0].set_xlabel("Time [s]")
     axs[1, 0].set_ylabel("Amplitude")
     # axs[1, 0].legend()
@@ -224,7 +224,7 @@ if uploaded_file is not None:
     st.caption(f"Detected periods: {T*f0:.1f}")
 
     # Slider for selecting the number of harmonics to plot
-    n_harmonics = st.slider("Number of Harmonics", 1, 20, 10)
+    n_harmonics = st.slider("Number of Harmonics", 1, 40, 10)
 
     st.divider()
 
@@ -251,8 +251,12 @@ if uploaded_file is not None:
 
     st.header("Waveform Charts", divider="gray")
 
+    divide_f0 = st.checkbox("Divide frequency in title")
     # Plot the 2x2 waveforms
-    plot_2x2_waveforms(t, data, a_n, b_n, f0_fft, f0, n_harmonics)
+    if divide_f0:
+        plot_2x2_waveforms(t, data, a_n, b_n, f0, f0, n_harmonics)
+    else:
+        plot_2x2_waveforms(t, data, a_n, b_n, f0, f0_fft, n_harmonics)
     
     st.header("Fourier Coefficients Charts", divider="gray")
     
