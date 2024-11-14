@@ -60,16 +60,19 @@ def plot_2x2_waveforms(t, data, a_n, b_n, f0, f0_title, n_harmonics):
     # axs[0, 1].legend()
 
     # (3) 1st harmonic (n=2)
-    first_harmonic = a_n[2] * np.cos(2 * np.pi * 2 * f0 * t) + b_n[2] * np.sin(2 * np.pi * 2 * f0 * t)
-    axs[1, 0].plot(t, first_harmonic, label="1st Harmonic", color='green')
-    axs[1, 0].set_title(f"1st Harmonic f={f0_title:.0f}Hz (n=2)")
-    axs[1, 0].set_xlabel("Time [s]")
-    axs[1, 0].set_ylabel("Amplitude")
-    # axs[1, 0].legend()
+    try:
+        first_harmonic = a_n[2] * np.cos(2 * np.pi * 2 * f0 * t) + b_n[2] * np.sin(2 * np.pi * 2 * f0 * t)
+        axs[1, 0].plot(t, first_harmonic, label="1st Harmonic", color='green')
+        axs[1, 0].set_title(f"1st Harmonic f={2*f0_title:.0f}Hz (n=2)")
+        axs[1, 0].set_xlabel("Time [s]")
+        axs[1, 0].set_ylabel("Amplitude")
+        # axs[1, 0].legend()
+    except IndexError:
+        pass
 
     # (4) Sum of fundamental + next 9 harmonics
     sum_of_harmonics = np.zeros(len(t))
-    for i in range(1, n_harmonics):
+    for i in range(1, n_harmonics+1):
         sum_of_harmonics += a_n[i] * np.cos(2 * np.pi * i * f0 * t) + b_n[i] * np.sin(2 * np.pi * i * f0 * t)
     axs[1, 1].plot(t, sum_of_harmonics, label=f"Fundamental + {n_harmonics-1} Harmonics", color='red')
     axs[1, 1].plot(t, data, label="Original Waveform", color='blue', linestyle='dotted')
